@@ -68,7 +68,7 @@ def advanced_eda(data):
     # Selling Price Distribution before skew treatment
     st.subheader("Selling Price Distribution Before Treatment")
     plt.figure(figsize=(10,6))
-    sns.distplot(data['selling_price'], kde=True, color='blue', bins=30)
+    sns.histplot(data['selling_price'], kde=True, color='blue', bins=30)
     st.pyplot()
 
     # Boxplot for Outliers Detection
@@ -89,7 +89,7 @@ def advanced_eda(data):
     # Selling Price Distribution after skew treatment
     st.subheader("Selling Price Distribution After Log Transformation")
     plt.figure(figsize=(10,6))
-    sns.distplot(data['log_selling_price'], kde=True, color='green', bins=30)
+    sns.histplot(data['log_selling_price'], kde=True, color='green', bins=30)
     st.pyplot()
 
     # Violin Plot for Distribution (before and after treatment)
