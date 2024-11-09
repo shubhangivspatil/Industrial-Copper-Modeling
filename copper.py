@@ -103,17 +103,82 @@ def advanced_eda(data):
     sns.pairplot(data[['quantity tons', 'thickness', 'width', 'selling_price']], hue='selling_price')
     st.pyplot()
 
+# Basic EDA Function (New Page)
+def basic_eda(data):
+    st.title("Basic Exploratory Data Analysis (EDA)")
+
+    # Display basic information about the dataset
+    st.subheader("Dataset Overview")
+    st.write(data.info())
+
+    # Display first few rows of the dataset
+    st.subheader("First 5 Rows of Data")
+    st.write(data.head())
+
+    # Show missing values
+    st.subheader("Missing Values")
+    missing_values = data.isnull().sum()
+    st.write(missing_values)
+
+    # Display summary statistics
+    st.subheader("Summary Statistics")
+    st.write(data.describe())
+
+    # Distribution of the 'selling_price'
+    st.subheader("Selling Price Distribution")
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data['selling_price'], kde=True, color='blue', bins=30)
+    st.pyplot()
+
+    # Boxplot for 'selling_price' to detect outliers
+    st.subheader("Boxplot for Selling Price")
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(x=data['selling_price'], color='red')
+    st.pyplot()
+
+    # Distribution of 'quantity tons'
+    st.subheader("Distribution of Quantity Tons")
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data['quantity tons'], kde=True, color='green', bins=30)
+    st.pyplot()
+
+    
+
+    # Pairwise correlation plot (using seaborn pairplot for selected features)
+    st.subheader("Pairwise Correlation Plot (Selected Features)")
+    plt.figure(figsize=(10, 6))
+    sns.pairplot(data[['quantity tons', 'thickness', 'width', 'selling_price']])
+    st.pyplot()
+
+    # Distribution of a categorical variable (example: 'customer')
+    st.subheader("Customer Distribution")
+    plt.figure(figsize=(10, 6))
+    sns.countplot(x='customer', data=data, palette='Set2')
+    st.pyplot()
+
+    # Scatter plot between 'selling_price' and 'quantity tons'
+    st.subheader("Scatter Plot: Selling Price vs. Quantity Tons")
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(x=data['quantity tons'], y=data['selling_price'], color='purple')
+    st.pyplot()
+
+    # Scatter plot between 'selling_price' and 'thickness'
+    st.subheader("Scatter Plot: Selling Price vs. Thickness")
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(x=data['thickness'], y=data['selling_price'], color='orange')
+    st.pyplot()
+
 # Main Streamlit app function
 def main():
     st.sidebar.header("Navigation")
-    page = st.sidebar.selectbox("Select a page", ["Home", "Predictive Analysis", "Retrain Models", "Advanced EDA"])
+    page = st.sidebar.selectbox("Select a page", ["Home", "Predictive Analysis", "Retrain Models", "Advanced EDA", "EDA"])
 
     # Load and prepare data
     X, y_price, y_status, data = load_and_prepare_data(file_path)
 
     if page == "Home":
         st.title("Welcome to the Industrial Copper Modeling App")
-        st.write("""
+        st.write("""        
         This application allows you to predict selling prices and classify status (Won/Lost) based on various features.
         
         **Problem Statement:**
@@ -162,7 +227,7 @@ def main():
                 st.error(f"Error predicting selling price: {e}")
 
         # Predict Status (using status_Won)
-        if st.button("Predict Status (Won/Lost)"):
+        if st.button("Predict Status (Won/Lost)") :
             try:
                 status_pred = classifier.predict(input_df)[0]
                 status = "WON" if status_pred == 1 else "LOST"
@@ -185,6 +250,10 @@ def main():
     elif page == "Advanced EDA":
         # Perform and display advanced EDA
         advanced_eda(data)
+
+    elif page == "EDA":
+        # Perform and display basic EDA
+        basic_eda(data)
 
 if __name__ == "__main__":
     main()
