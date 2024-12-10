@@ -10,10 +10,11 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from scipy.stats import skew
 
 # Define paths for models and data
-model_path = r"C:\Users\User\Desktop\jupiter_files"  # Path for saving models
-file_path = r'D:/Final_Projects/New_Cleaned_Copper_modelling_project.csv'  # Path to the cleaned dataset
+MODEL_PATH = r"C:\Users\User\Desktop\jupiter_files"  # Path for saving models
+FILE_PATH = r'D:/Final_Projects/New_Cleaned_Copper_modelling_project.csv'  # Path to the cleaned dataset
 
 # Load and prepare the dataset
+@st.cache_data
 def load_and_prepare_data(file_path):
     data = pd.read_csv(file_path)
     # Define features and target variables
@@ -34,32 +35,23 @@ def train_models(X, y_price, y_status):
     # Train regression model for selling_price prediction
     regressor = RandomForestRegressor()
     regressor.fit(X_train, y_train_price)
-    joblib.dump(regressor, os.path.join(model_path, 'best_rf_regressor.pkl'))
+    joblib.dump(regressor, os.path.join(MODEL_PATH, 'best_rf_regressor.pkl'))
 
     # Train classification model for status_Won prediction
     classifier = RandomForestClassifier()
     classifier.fit(X_train, y_train_status)
-    joblib.dump(classifier, os.path.join(model_path, 'best_rf_classifier.pkl'))
+    joblib.dump(classifier, os.path.join(MODEL_PATH, 'best_rf_classifier.pkl'))
 
 # Load models function
 @st.cache_resource
 def load_models():
     try:
-        regressor = joblib.load(os.path.join(model_path, 'best_rf_regressor.pkl'))
-        classifier = joblib.load(os.path.join(model_path, 'best_rf_classifier.pkl'))
+        regressor = joblib.load(os.path.join(MODEL_PATH, 'best_rf_regressor.pkl'))
+        classifier = joblib.load(os.path.join(MODEL_PATH, 'best_rf_classifier.pkl'))
         return regressor, classifier
     except Exception as e:
         st.sidebar.error(f"Error loading models: {e}")
         return None, None
-
-# Load data function
-@st.cache_data
-def load_data():
-    try:
-        return pd.read_csv(file_path)
-    except Exception as e:
-        st.sidebar.error(f"Error loading data: {e}")
-        return None
 
 # Advanced EDA Function
 def advanced_eda(data):
@@ -67,13 +59,11 @@ def advanced_eda(data):
 
     # Selling Price Distribution before skew treatment
     st.subheader("Selling Price Distribution Before Treatment")
-    plt.figure(figsize=(10,6))
     sns.histplot(data['selling_price'], kde=True, color='blue', bins=30)
     st.pyplot()
 
     # Boxplot for Outliers Detection
     st.subheader("Outliers Detection - Selling Price")
-    plt.figure(figsize=(10,6))
     sns.boxplot(data['selling_price'], color='red')
     st.pyplot()
 
@@ -88,13 +78,11 @@ def advanced_eda(data):
 
     # Selling Price Distribution after skew treatment
     st.subheader("Selling Price Distribution After Log Transformation")
-    plt.figure(figsize=(10,6))
     sns.histplot(data['log_selling_price'], kde=True, color='green', bins=30)
     st.pyplot()
 
     # Violin Plot for Distribution (before and after treatment)
     st.subheader("Violin Plot: Selling Price Before and After Transformation")
-    plt.figure(figsize=(12,6))
     sns.violinplot(data=data[['selling_price', 'log_selling_price']], palette="Set2")
     st.pyplot()
 
@@ -103,7 +91,7 @@ def advanced_eda(data):
     sns.pairplot(data[['quantity tons', 'thickness', 'width', 'selling_price']], hue='selling_price')
     st.pyplot()
 
-# Basic EDA Function (New Page)
+# Basic EDA Function
 def basic_eda(data):
     st.title("Basic Exploratory Data Analysis (EDA)")
 
@@ -117,8 +105,7 @@ def basic_eda(data):
 
     # Show missing values
     st.subheader("Missing Values")
-    missing_values = data.isnull().sum()
-    st.write(missing_values)
+    st.write(data.isnull().sum())
 
     # Display summary statistics
     st.subheader("Summary Statistics")
@@ -126,55 +113,45 @@ def basic_eda(data):
 
     # Distribution of the 'selling_price'
     st.subheader("Selling Price Distribution")
-    plt.figure(figsize=(10, 6))
     sns.histplot(data['selling_price'], kde=True, color='blue', bins=30)
     st.pyplot()
 
     # Boxplot for 'selling_price' to detect outliers
     st.subheader("Boxplot for Selling Price")
-    plt.figure(figsize=(10, 6))
     sns.boxplot(x=data['selling_price'], color='red')
     st.pyplot()
 
     # Distribution of 'quantity tons'
     st.subheader("Distribution of Quantity Tons")
-    plt.figure(figsize=(10, 6))
     sns.histplot(data['quantity tons'], kde=True, color='green', bins=30)
     st.pyplot()
 
-    
-
-    # Pairwise correlation plot (using seaborn pairplot for selected features)
+    # Pairwise correlation plot
     st.subheader("Pairwise Correlation Plot (Selected Features)")
-    plt.figure(figsize=(10, 6))
     sns.pairplot(data[['quantity tons', 'thickness', 'width', 'selling_price']])
     st.pyplot()
 
-    # Distribution of a categorical variable (example: 'customer')
+    # Distribution of 'customer'
     st.subheader("Customer Distribution")
-    plt.figure(figsize=(10, 6))
     sns.countplot(x='customer', data=data, palette='Set2')
     st.pyplot()
 
-    # Scatter plot between 'selling_price' and 'quantity tons'
+    # Scatter plots
     st.subheader("Scatter Plot: Selling Price vs. Quantity Tons")
-    plt.figure(figsize=(10, 6))
     sns.scatterplot(x=data['quantity tons'], y=data['selling_price'], color='purple')
     st.pyplot()
 
-    # Scatter plot between 'selling_price' and 'thickness'
     st.subheader("Scatter Plot: Selling Price vs. Thickness")
-    plt.figure(figsize=(10, 6))
     sns.scatterplot(x=data['thickness'], y=data['selling_price'], color='orange')
     st.pyplot()
 
 # Main Streamlit app function
 def main():
     st.sidebar.header("Navigation")
-    page = st.sidebar.selectbox("Select a page", ["Home", "Predictive Analysis", "Retrain Models", "Advanced EDA", "EDA"])
+    page = st.sidebar.selectbox("Select a page", ["Home", "Predict Selling Price", "Predict Status (Won/Lost)", "Retrain Models", "Advanced EDA", "EDA"])
 
     # Load and prepare data
-    X, y_price, y_status, data = load_and_prepare_data(file_path)
+    X, y_price, y_status, data = load_and_prepare_data(FILE_PATH)
 
     if page == "Home":
         st.title("Welcome to the Industrial Copper Modeling App")
@@ -194,65 +171,60 @@ def main():
         [Shubhangi Patil GitHub](https://github.com/shubhangivspatil/Industrial-Copper-Modeling)  
         """)
 
-    elif page == "Predictive Analysis":
-        # Load models for prediction
-        regressor, classifier = load_models()
-        
-        if regressor is None or classifier is None:
-            st.error("Models are not loaded. Please retrain models first.")
+    elif page == "Predict Selling Price":
+        st.title("Predict Selling Price")
+        regressor, _ = load_models()
+
+        if regressor is None:
+            st.error("Model is not loaded. Please retrain models first.")
             return
 
-        # Input form for predictions
-        st.sidebar.header("User Input Features")
-        columns = ['quantity tons', 'customer', 'country', 'application', 'thickness', 'width']
+        st.header("User Input Features")
+        input_data = {col: st.selectbox(f"Select {col}", options=data[col].unique()) if col in ['customer', 'country', 'application'] else st.number_input(f"Enter {col}", value=0.0) for col in ['quantity tons', 'customer', 'country', 'application', 'thickness', 'width']}
         
-        # Collect input data from the user
-        input_data = {}
-        for col in columns:
-            if col in ['customer', 'country', 'application']:  # Assuming these are categorical features
-                input_data[col] = st.sidebar.selectbox(f"Select {col}", options=data[col].unique())
-            else:
-                input_data[col] = st.sidebar.number_input(f"Enter {col}", value=0.0)
-        
-        # Convert user input to DataFrame and one-hot encode
         input_df = pd.DataFrame([input_data])
-        input_df = pd.get_dummies(input_df).reindex(columns=X.columns, fill_value=0)  # Match train columns
-        
-        # Predict Selling Price
+        input_df = pd.get_dummies(input_df).reindex(columns=X.columns, fill_value=0)
+
         if st.button("Predict Selling Price"):
             try:
                 selling_price_pred = regressor.predict(input_df)[0]
-                st.write(f"### Predicted Selling Price: ${selling_price_pred:,.2f}")  # Format as dollars
+                st.success(f"Predicted Selling Price: ${selling_price_pred:,.2f}")
             except Exception as e:
                 st.error(f"Error predicting selling price: {e}")
 
-        # Predict Status (using status_Won)
-        if st.button("Predict Status (Won/Lost)") :
+    elif page == "Predict Status (Won/Lost)":
+        st.title("Predict Status (Won/Lost)")
+        _, classifier = load_models()
+
+        if classifier is None:
+            st.error("Model is not loaded. Please retrain models first.")
+            return
+
+        st.header("User Input Features")
+        input_data = {col: st.selectbox(f"Select {col}", options=data[col].unique()) if col in ['customer', 'country', 'application'] else st.number_input(f"Enter {col}", value=0.0) for col in ['quantity tons', 'customer', 'country', 'application', 'thickness', 'width']}
+        
+        input_df = pd.DataFrame([input_data])
+        input_df = pd.get_dummies(input_df).reindex(columns=X.columns, fill_value=0)
+
+        if st.button("Predict Status"):
             try:
                 status_pred = classifier.predict(input_df)[0]
                 status = "WON" if status_pred == 1 else "LOST"
-                st.write(f"### Predicted Status: {status}")
+                st.success(f"Predicted Status: {status}")
             except Exception as e:
                 st.error(f"Error predicting status: {e}")
 
     elif page == "Retrain Models":
         st.title("Retrain Models")
-        st.write("Click the button below to retrain models with the latest data.")
-        
         if st.button("Retrain Models"):
-            # Load and preprocess data
-            X, y_price, y_status, data = load_and_prepare_data(file_path)
-            # Train and save the models
             train_models(X, y_price, y_status)
             st.success("Models retrained and saved successfully.")
-            st.write("Reload the **Predictive Analysis** page to use the updated models.")
+            st.write("Reload the **Predict Selling Price** page to use the updated models.")
 
     elif page == "Advanced EDA":
-        # Perform and display advanced EDA
         advanced_eda(data)
 
     elif page == "EDA":
-        # Perform and display basic EDA
         basic_eda(data)
 
 if __name__ == "__main__":
